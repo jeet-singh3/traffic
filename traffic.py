@@ -161,12 +161,13 @@ def lecture_model():
     return model
 
 
-def deeper_model():
+def model_look_twice():
     """
     Deeper Model
-    Adds a second layer
-    Might help it see more complex patterns?
+    Adds a second layer.
+    Looking at the image twice before making a decision might help.
     """
+    # Starting the same as base lecture model
     model = tf.keras.models.Sequential()
     model.add(
         tf.keras.layers.Conv2D(
@@ -174,12 +175,133 @@ def deeper_model():
         )
     )
     model.add(tf.keras.layers.MaxPooling2D(pool_size=(2, 2)))
+
     # Adds a second layer
     model.add(tf.keras.layers.Conv2D(64, (3, 3), activation="relu"))
     model.add(tf.keras.layers.MaxPooling2D(pool_size=(2, 2)))
+
+    # Everything else is same as the base model
     model.add(tf.keras.layers.Flatten())
     model.add(tf.keras.layers.Dense(128, activation="relu"))
     model.add(tf.keras.layers.Dropout(0.5))
+    model.add(tf.keras.layers.Dense(NUM_CATEGORIES, activation="softmax"))
+    model.compile(
+        optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"]
+    )
+    return model
+
+
+def model_think_harder():
+    """
+    Wider Model
+    Uses bigger filters and a larger dense layer.
+    Thinking harder with more "neurons" might help it learn better.
+    """
+    # Starts differently from base: uses more filters and a larger kernel, (64, (5, 5)) > (32, (3, 3))
+    model = tf.keras.models.Sequential()
+    model.add(
+        tf.keras.layers.Conv2D(
+            64, (5, 5), activation="relu", input_shape=(IMG_WIDTH, IMG_HEIGHT, 3)
+        )
+    )
+    model.add(tf.keras.layers.MaxPooling2D(pool_size=(2, 2)))
+
+    # Adds a second layer with even more filters, 128 > 64
+    model.add(tf.keras.layers.Conv2D(128, (3, 3), activation="relu"))
+    model.add(tf.keras.layers.MaxPooling2D(pool_size=(2, 2)))
+
+    # Larger dense layer than base model, 256 > 128
+    model.add(tf.keras.layers.Flatten())
+    model.add(tf.keras.layers.Dense(256, activation="relu"))
+    model.add(tf.keras.layers.Dropout(0.5))
+    model.add(tf.keras.layers.Dense(NUM_CATEGORIES, activation="softmax"))
+    model.compile(
+        optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"]
+    )
+    return model
+
+
+def model_remembers_everything():
+    """
+    No Dropout Model
+    Same as model_look_twice, but doesn’t forget anything.
+    Might learn faster, but could overfit.
+    """
+    # Starts the same as base lecture model: first conv layer with (32, (3, 3))
+    model = tf.keras.models.Sequential()
+    model.add(
+        tf.keras.layers.Conv2D(
+            32, (3, 3), activation="relu", input_shape=(IMG_WIDTH, IMG_HEIGHT, 3)
+        )
+    )
+    model.add(tf.keras.layers.MaxPooling2D(pool_size=(2, 2)))
+
+    # Adds a second conv layer, same as model_look_twice
+    model.add(tf.keras.layers.Conv2D(64, (3, 3), activation="relu"))
+    model.add(tf.keras.layers.MaxPooling2D(pool_size=(2, 2)))
+
+    # Same dense structure as base, but without dropout
+    model.add(tf.keras.layers.Flatten())
+    model.add(tf.keras.layers.Dense(128, activation="relu"))
+    model.add(tf.keras.layers.Dense(NUM_CATEGORIES, activation="softmax"))
+    model.compile(
+        optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"]
+    )
+    return model
+
+
+def model_try_minimum():
+    """
+    Tiny Model
+    Very small and simple. Just one small conv and one small dense layer.
+    Tests how little work the model can do and still learn.
+    """
+    # Smaller than base: only 16 filters (vs 32) and no pooling
+    model = tf.keras.models.Sequential()
+    model.add(
+        tf.keras.layers.Conv2D(
+            16, (3, 3), activation="relu", input_shape=(IMG_WIDTH, IMG_HEIGHT, 3)
+        )
+    )
+
+    # No pooling layer here
+
+    # Smaller dense layer: 64 < 128
+    model.add(tf.keras.layers.Flatten())
+    model.add(tf.keras.layers.Dense(64, activation="relu"))
+    model.add(tf.keras.layers.Dense(NUM_CATEGORIES, activation="softmax"))
+    model.compile(
+        optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"]
+    )
+    return model
+
+
+def model_out_of_order():
+    """
+    Out of Order Model
+    Dense layers come before the final conv layer.
+    Not a smart setup — just testing weird stuff.
+    """
+    # Starts like base with first conv layer (32, (3, 3))
+    model = tf.keras.models.Sequential()
+    model.add(
+        tf.keras.layers.Conv2D(
+            32, (3, 3), activation="relu", input_shape=(IMG_WIDTH, IMG_HEIGHT, 3)
+        )
+    )
+
+    # Goes out of order: flatten and dense layers before final conv
+    model.add(tf.keras.layers.Flatten())
+    model.add(tf.keras.layers.Dense(128, activation="relu"))
+    model.add(tf.keras.layers.Dense(64, activation="relu"))
+
+    # Reshape into fake "image"
+    model.add(tf.keras.layers.Reshape((IMG_WIDTH - 2, IMG_HEIGHT - 2, 1)))
+
+    # Second conv layer comes after flatten/dense, very unusual
+    model.add(tf.keras.layers.Conv2D(16, (1, 1), activation="relu"))
+
+    model.add(tf.keras.layers.Flatten())
     model.add(tf.keras.layers.Dense(NUM_CATEGORIES, activation="softmax"))
     model.compile(
         optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"]
