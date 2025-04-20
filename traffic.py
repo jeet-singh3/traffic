@@ -124,13 +124,76 @@ def load_data(data_dir):
     return images, labels
 
 
+# Brian's Lecture Model
+def lecture_model():
+    """
+    A simple CNN model lifted from the CS50 AI handwriting lecture.
+    Architecture: Conv → MaxPool → Flatten → Dense → Dropout → Output
+    """
+    model = tf.keras.models.Sequential()
+
+    # Lifted from lecture
+    # Convolutional layer. Learn 32 filters using a 3x3 kernel
+    model.add(
+        tf.keras.layers.Conv2D(
+            32, (3, 3), activation="relu", input_shape=(IMG_WIDTH, IMG_HEIGHT, 3)
+        )
+    )
+
+    # Max-pooling layer, using 2x2 pool size
+    model.add(tf.keras.layers.MaxPooling2D(pool_size=(2, 2)))
+
+    # Flatten 2D feature maps into 1D vector
+    model.add(tf.keras.layers.Flatten())
+
+    # Add a hidden layer with dropout
+    model.add(tf.keras.layers.Dense(128, activation="relu"))
+    model.add(tf.keras.layers.Dropout(0.5))
+
+    # Output layer with softmax over NUM_CATEGORIES classes
+    model.add(tf.keras.layers.Dense(NUM_CATEGORIES, activation="softmax"))
+
+    # Compile model with Adam optimizer as used in handwriting.py
+    model.compile(
+        optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"]
+    )
+
+    return model
+
+
+def deeper_model():
+    """
+    Deeper Model
+    Adds a second layer
+    Might help it see more complex patterns?
+    """
+    model = tf.keras.models.Sequential()
+    model.add(
+        tf.keras.layers.Conv2D(
+            32, (3, 3), activation="relu", input_shape=(IMG_WIDTH, IMG_HEIGHT, 3)
+        )
+    )
+    model.add(tf.keras.layers.MaxPooling2D(pool_size=(2, 2)))
+    # Adds a second layer
+    model.add(tf.keras.layers.Conv2D(64, (3, 3), activation="relu"))
+    model.add(tf.keras.layers.MaxPooling2D(pool_size=(2, 2)))
+    model.add(tf.keras.layers.Flatten())
+    model.add(tf.keras.layers.Dense(128, activation="relu"))
+    model.add(tf.keras.layers.Dropout(0.5))
+    model.add(tf.keras.layers.Dense(NUM_CATEGORIES, activation="softmax"))
+    model.compile(
+        optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"]
+    )
+    return model
+
+
 def get_model():
     """
     Returns a compiled convolutional neural network model. Assume that the
     `input_shape` of the first layer is `(IMG_WIDTH, IMG_HEIGHT, 3)`.
     The output layer should have `NUM_CATEGORIES` units, one for each category.
     """
-    raise NotImplementedError
+    return lecture_model()
 
 
 if __name__ == "__main__":
