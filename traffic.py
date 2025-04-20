@@ -35,13 +35,59 @@ def main():
     model.fit(x_train, y_train, epochs=EPOCHS)
 
     # Evaluate neural network performance
-    model.evaluate(x_test,  y_test, verbose=2)
+    model.evaluate(x_test, y_test, verbose=2)
 
     # Save model to file
     if len(sys.argv) == 3:
         filename = sys.argv[2]
         model.save(filename)
         print(f"Model saved to {filename}.")
+
+
+def load_category_images(folder_path, label):
+    """
+    Loads and processes all images in a category directory.
+    Returns a tuple of (images, labels) for that category.
+    """
+
+    images = []
+    labels = []
+
+    # Loop over all files in the category directory
+    for filename in os.listdir(folder_path):
+        image_path = os.path.join(folder_path, filename)
+
+        # Read and resize image
+        resized_image = read_and_resize_image(image_path)
+
+        # ignore if image is None
+        if resized_image is not None:
+            images.append(resized_image)
+            labels.append(label)
+
+    return images, labels
+
+
+def read_and_resize_image(image_path):
+    """
+    Read an image from disk and resize it to the target dimensions.
+
+    Args:
+        image_path (str): Path to the image file.
+
+    Returns:
+        np.ndarray or None: Resized image array, or None if reading fails.
+    """
+    try:
+        image = cv2.imread(image_path)  # Reads the image file into a NumPy array
+        if image is not None:
+            return cv2.resize(
+                image, (IMG_WIDTH, IMG_HEIGHT)
+            )  # Resizes the image to (width, height), returns np.ndarray
+    except Exception as e:
+        print(f"Could not read {image_path}: {e}")  # Error handling
+
+    return None  # None if reading fails
 
 
 def load_data(data_dir):
@@ -58,7 +104,24 @@ def load_data(data_dir):
     be a list of integer labels, representing the categories for each of the
     corresponding `images`.
     """
-    raise NotImplementedError
+    images = []
+    labels = []
+
+    # Loop over all category labels from 0 to range(NUM_CATEGORIES) aka NUM_CATEGORIES - 1
+    for label in range(NUM_CATEGORIES):
+        category_dir = os.path.join(data_dir, str(label))
+
+        if not os.path.isdir(category_dir):
+            continue
+
+        # Load all images and corresponding labels from this category
+        category_images, category_labels = load_category_images(category_dir, label)
+
+        # Append to the master image/label lists
+        images.extend(category_images)
+        labels.extend(category_labels)
+
+    return images, labels
 
 
 def get_model():
